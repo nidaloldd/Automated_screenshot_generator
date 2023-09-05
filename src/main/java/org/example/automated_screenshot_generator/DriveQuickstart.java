@@ -22,7 +22,9 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
-/* class to demonstrate use of Drive files list API */
+import org.tinylog.Logger;
+
+
 public class DriveQuickstart {
     private static final String APPLICATION_NAME = "Automated screenshot generator";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -32,7 +34,18 @@ public class DriveQuickstart {
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     private static Drive service = null;
 
-    public static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
+    public static Drive getDrive() throws GeneralSecurityException, IOException {
+        // Build a new authorized API client service.
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+
+        if(service == null){
+            return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                    .setApplicationName(APPLICATION_NAME)
+                    .build();
+        }
+        else return service;
+    }
+    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
             throws IOException {
         // Load client secrets.
         InputStream in = DriveQuickstart.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
@@ -49,21 +62,8 @@ public class DriveQuickstart {
                 .setAccessType("offline")
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 
-        return credential;
-    }
-
-    public static Drive getDrive() throws GeneralSecurityException, IOException {
-        // Build a new authorized API client service.
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-
-        if(service == null){
-            return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();
-        }
-        else return service;
+        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
     public void printFiles() throws IOException, GeneralSecurityException {
@@ -74,14 +74,14 @@ public class DriveQuickstart {
                 .setFields("nextPageToken, files(id, name)")
                 .execute();
 
-
         List<File> files = result.getFiles();
         if (files == null || files.isEmpty()) {
-            System.out.println("No files found.");
+            Logger.info("No files found.");
         } else {
-            System.out.println("Files:");
+            Logger.info("Files:");
+
             for (File file : files) {
-                System.out.printf("%s (%s)\n", file.getName(), file.getId());
+                Logger.info("%s (%s)\n", file.getName(), file.getId());
             }
         }
     }

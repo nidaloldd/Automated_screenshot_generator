@@ -1,9 +1,10 @@
 package org.example.automated_screenshot_generator;
 
+import org.tinylog.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -30,45 +31,36 @@ public class ScreenshotMaker {
         options.put("zoom", "100");
     }
 
-    public static void makeScreenshot(Website website,String pathToSave) throws MalformedURLException, IOException, NoSuchAlgorithmException {
+    public static void makeScreenshot(Website website,String pathToSave) throws IOException, NoSuchAlgorithmException {
 
-
-        options.put("url", website.URL);
+        options.put("url", website.getUrl());
 
         String apiUrl = sm.generateScreenshotApiUrl(options);
-        System.out.println(apiUrl);
+        Logger.info(apiUrl);
 
         URLConnection openConnection = new URL(apiUrl).openConnection();
         openConnection.addRequestProperty("User-Agent", "Mozilla/4.0");
 
         InputStream in = openConnection.getInputStream();
-        String output = pathToSave+website.ID+"_"+website.NAME+"."+options.get("format");
+        String fileName = website.getID()+"_"+website.getName()+"."+options.get("format");
+        String output = pathToSave+fileName;
         Files.copy(in, Paths.get(output), StandardCopyOption.REPLACE_EXISTING);
-        System.out.println("Screenshot saved as " + output);
+        Logger.info("Screenshot saved as " + output);
     }
 
-    public static void makeScreenshotToDrive(Website website) throws MalformedURLException, IOException, GeneralSecurityException {
+    public static void makeScreenshotToDrive(Website website) throws IOException, GeneralSecurityException {
 
-        options.put("url", website.URL);
+        options.put("url", website.getUrl());
 
-        String apiUrl = sm.generateScreenshotApiUrl(options);
-        System.out.println(apiUrl);
+        makeScreenshot(website,"src/main/resources/");
 
-        URLConnection openConnection = new URL(apiUrl).openConnection();
-        openConnection.addRequestProperty("User-Agent", "Mozilla/4.0");
+        String fileName = website.getID()+"_"+website.getName()+"."+options.get("format");
+        String output = "src/main/resources/"+fileName;
 
-        InputStream in = openConnection.getInputStream();
-
-        String name = website.ID+"_"+website.NAME+"."+options.get("format");
-        String output = "src/main/resources/"+name;
-
-        Files.copy(in, Paths.get(output), StandardCopyOption.REPLACE_EXISTING);
-        UploadBasic.uploadBasic(name, output);
-
+        UploadBasic.uploadBasic(fileName, output);
         File file = new File(output);
         file.delete();
 
-
-        System.out.println("Screenshot saved to Drive");
+        Logger.info("Screenshot saved to Drive");
     }
 }

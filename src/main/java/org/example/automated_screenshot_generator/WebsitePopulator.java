@@ -1,5 +1,7 @@
 package org.example.automated_screenshot_generator;
 
+import org.tinylog.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +16,6 @@ public class WebsitePopulator {
         websiteList.add(new Website(4,"Homegrown","www.homegrown.co.uk"));
         websiteList.add(new Website(5,"Realty Mogul","https://www.realtymogul.com"));
 
-        System.out.println("websiteList was populated");
+        Logger.info("websiteList was populated");
     }
 }
